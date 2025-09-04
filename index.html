@@ -1,40 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>letterPopular</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>Favorite & Least Favorite Letter Tracker</h1>
-    <form id="letterForm">
-      <input type="text" id="name" placeholder="Your Name" required>
-      <input type="date" id="date" required>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>letterPopular</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Letter Popularity Tracker</h1>
+      <form id="letterForm">
+        <input
+          type="text"
+          id="name"
+          placeholder="✨ Enter your name"
+          required
+        />
+        <input type="date" id="date" required />
 
-      <label for="favorite">Favorite Letter:</label>
-      <select id="favorite" required></select>
+        <label for="favorite">💖 Favorite Letter:</label>
+        <select id="favorite" required></select>
 
-      <label for="least">Least Favorite Letter:</label>
-      <select id="least" required></select>
+        <label for="least">💔 Least Favorite Letter:</label>
+        <select id="least" required></select>
 
-      <button type="submit">Submit Entry</button>
-    </form>
+        <button type="submit">🚀 Submit Entry</button>
+      </form>
 
-    <div class="results">
-      <h2>Favorite Letter Stats</h2>
-      <ul id="favoriteStats"></ul>
+      <div class="results">
+        <h2>🏆 Most Loved Letters</h2>
+        <ul id="favoriteStats"></ul>
 
-      <h2>Least Favorite Letter Stats</h2>
-      <ul id="leastStats"></ul>
+        <h2>💔 Least Popular Letters</h2>
+        <ul id="leastStats"></ul>
+      </div>
+
+      <div class="export-section">
+        <h2>📊 Data Management</h2>
+        <div class="button-group">
+          <button id="exportBtn">💾 Export Data</button>
+          <input type="file" id="importInput" accept=".json" />
+        </div>
+      </div>
     </div>
-  </div>
-
-  <hr>
-<h2>Import / Export</h2>
-<button id="exportBtn">Export Data</button>
-<input type="file" id="importInput" accept=".json">
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
