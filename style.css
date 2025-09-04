@@ -987,4 +987,24 @@ li::after {
     align-items: stretch;
     text-align: center;
   }
+
+  /* Fix entries container height on mobile */
+  .entries-container:not(.hidden) {
+    max-height: none;
+    height: auto;
+  }
+
+  .entries-list {
+    max-height: 300px;
+  }
+
+  .search-filters {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-input {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
 }
