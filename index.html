@@ -35,6 +35,18 @@
         <ul id="leastStats"></ul>
       </div>
 
+      <div class="entries-section">
+        <div class="section-header">
+          <h2>👥 Manage Entries</h2>
+          <button id="toggleEntriesBtn" class="toggle-btn">
+            👁️ Show Entries
+          </button>
+        </div>
+        <div id="entriesContainer" class="entries-container hidden">
+          <div id="entriesList" class="entries-list"></div>
+        </div>
+      </div>
+
       <div class="export-section">
         <h2>📊 Data Management</h2>
         <div class="button-group">
@@ -43,6 +55,40 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>✏️ Edit Entry</h3>
+          <button id="closeModal" class="close-btn">&times;</button>
+        </div>
+        <form id="editForm">
+          <input type="hidden" id="editId" />
+          <input
+            type="text"
+            id="editName"
+            placeholder="✨ Enter your name"
+            required
+          />
+          <input type="date" id="editDate" required />
+
+          <label for="editFavorite">💖 Favorite Letter:</label>
+          <select id="editFavorite" required></select>
+
+          <label for="editLeast">💔 Least Favorite Letter:</label>
+          <select id="editLeast" required></select>
+
+          <div class="modal-buttons">
+            <button type="submit" class="save-btn">💾 Save Changes</button>
+            <button type="button" id="cancelEdit" class="cancel-btn">
+              ❌ Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>

@@ -69,6 +69,7 @@ request.onerror = () => console.error("DB open error");
 request.onsuccess = (e) => {
   db = e.target.result;
   loadStats();
+  populateEditSelects();
 };
 request.onupgradeneeded = (e) => {
   db = e.target.result;
@@ -273,4 +274,261 @@ document.getElementById("importInput").addEventListener("change", (event) => {
     }
   };
   reader.readAsText(file);
+});
+
+// Entries Management Functionality
+
+// Populate edit form selects
+function populateEditSelects() {
+  const editFavoriteSelect = document.getElementById("editFavorite");
+  const editLeastSelect = document.getElementById("editLeast");
+
+  // Clear existing options
+  editFavoriteSelect.innerHTML = "";
+  editLeastSelect.innerHTML = "";
+
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const optionFav = new Option(
+      `${letter} - ${getLetterPersonality(letter)}`,
+      letter
+    );
+    const optionLeast = new Option(
+      `${letter} - ${getLetterPersonality(letter)}`,
+      letter
+    );
+    editFavoriteSelect.add(optionFav);
+    editLeastSelect.add(optionLeast);
+  }
+}
+
+// Toggle entries visibility
+let entriesVisible = false;
+document.getElementById("toggleEntriesBtn").addEventListener("click", () => {
+  const container = document.getElementById("entriesContainer");
+  const btn = document.getElementById("toggleEntriesBtn");
+
+  entriesVisible = !entriesVisible;
+
+  if (entriesVisible) {
+    container.classList.remove("hidden");
+    btn.textContent = "👁️ Hide Entries";
+    loadEntries();
+  } else {
+    container.classList.add("hidden");
+    btn.textContent = "👁️ Show Entries";
+  }
+});
+
+// Load and display all entries
+function loadEntries() {
+  const tx = db.transaction(storeName, "readonly");
+  const store = tx.objectStore(storeName);
+  const request = store.getAll();
+
+  request.onsuccess = () => {
+    const entries = request.result;
+    displayEntries(entries);
+  };
+}
+
+// Display entries in cards
+function displayEntries(entries) {
+  const entriesList = document.getElementById("entriesList");
+  entriesList.innerHTML = "";
+
+  if (entries.length === 0) {
+    entriesList.innerHTML = `
+      <div class="no-entries">
+        <p style="text-align: center; color: #666; font-style: italic;">
+          📭 No entries yet. Add some data to see it here!
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  // Sort by date (newest first)
+  entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  entries.forEach((entry, index) => {
+    const entryCard = document.createElement("div");
+    entryCard.className = "entry-card";
+    entryCard.style.animationDelay = `${index * 0.1}s`;
+
+    const date = new Date(entry.date);
+    const formattedDate = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+    entryCard.innerHTML = `
+      <div class="entry-header">
+        <div class="entry-name">👤 ${entry.name}</div>
+        <div class="entry-date">📅 ${formattedDate}</div>
+      </div>
+      <div class="entry-details">
+        <div class="entry-letter favorite-letter">
+          <div>💖 Favorite</div>
+          <div style="font-size: 1.5rem; font-weight: bold; margin-top: 0.5rem;">
+            ${entry.favorite}
+          </div>
+        </div>
+        <div class="entry-letter least-letter">
+          <div>💔 Least Favorite</div>
+          <div style="font-size: 1.5rem; font-weight: bold; margin-top: 0.5rem;">
+            ${entry.least}
+          </div>
+        </div>
+      </div>
+      <div class="entry-actions">
+        <button class="edit-btn" onclick="editEntry(${entry.id})">
+          ✏️ Edit
+        </button>
+        <button class="delete-btn" onclick="deleteEntry(${entry.id})">
+          🗑️ Delete
+        </button>
+      </div>
+    `;
+
+    entriesList.appendChild(entryCard);
+  });
+}
+
+// Edit entry function
+function editEntry(entryId) {
+  const tx = db.transaction(storeName, "readonly");
+  const store = tx.objectStore(storeName);
+  const request = store.get(entryId);
+
+  request.onsuccess = () => {
+    const entry = request.result;
+    if (entry) {
+      // Populate edit form
+      document.getElementById("editId").value = entry.id;
+      document.getElementById("editName").value = entry.name;
+      document.getElementById("editDate").value = entry.date;
+      document.getElementById("editFavorite").value = entry.favorite;
+      document.getElementById("editLeast").value = entry.least;
+
+      // Show modal
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+  };
+}
+
+// Delete entry function
+function deleteEntry(entryId) {
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this entry? This action cannot be undone."
+  );
+
+  if (confirmDelete) {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const request = store.delete(entryId);
+
+    request.onsuccess = () => {
+      // Success feedback
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = "✅ Deleted!";
+      btn.disabled = true;
+
+      setTimeout(() => {
+        loadEntries();
+        loadStats();
+
+        // Show success message briefly
+        const container = document.getElementById("entriesContainer");
+        const successMsg = document.createElement("div");
+        successMsg.style.cssText = `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(45deg, #4facfe, #00f2fe);
+          color: white;
+          padding: 1rem 2rem;
+          border-radius: 10px;
+          font-weight: 500;
+          z-index: 100;
+          animation: fadeInUp 0.3s ease-out;
+        `;
+        successMsg.textContent = "🎉 Entry deleted successfully!";
+        container.style.position = "relative";
+        container.appendChild(successMsg);
+
+        setTimeout(() => {
+          if (successMsg.parentNode) {
+            successMsg.remove();
+          }
+        }, 2000);
+      }, 500);
+    };
+
+    request.onerror = () => {
+      alert("Error deleting entry. Please try again.");
+    };
+  }
+}
+
+// Modal controls
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("editModal").classList.add("hidden");
+});
+
+document.getElementById("cancelEdit").addEventListener("click", () => {
+  document.getElementById("editModal").classList.add("hidden");
+});
+
+// Click outside modal to close
+document.getElementById("editModal").addEventListener("click", (e) => {
+  if (e.target.id === "editModal") {
+    document.getElementById("editModal").classList.add("hidden");
+  }
+});
+
+// Edit form submission
+document.getElementById("editForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const entryId = parseInt(document.getElementById("editId").value);
+  const updatedEntry = {
+    id: entryId,
+    name: document.getElementById("editName").value.trim(),
+    date: document.getElementById("editDate").value,
+    favorite: document.getElementById("editFavorite").value,
+    least: document.getElementById("editLeast").value,
+    timestamp: new Date().toISOString(), // Update timestamp
+  };
+
+  const tx = db.transaction(storeName, "readwrite");
+  const store = tx.objectStore(storeName);
+  const request = store.put(updatedEntry);
+
+  request.onsuccess = () => {
+    // Close modal
+    document.getElementById("editModal").classList.add("hidden");
+
+    // Refresh data
+    loadEntries();
+    loadStats();
+
+    // Show success feedback
+    const saveBtn = document.querySelector(".save-btn");
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = "✅ Saved!";
+    saveBtn.style.background = "linear-gradient(45deg, #4facfe, #00f2fe)";
+
+    setTimeout(() => {
+      saveBtn.textContent = originalText;
+      saveBtn.style.background = "linear-gradient(45deg, #667eea, #764ba2)";
+    }, 2000);
+  };
+
+  request.onerror = () => {
+    alert("Error updating entry. Please try again.");
+  };
 });
