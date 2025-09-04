@@ -186,7 +186,49 @@ function loadStats() {
   };
 }
 
-// EXPORT DATA
+// QUICK SAVE DATA (auto-filename)
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const tx = db.transaction(storeName, "readonly");
+  const store = tx.objectStore(storeName);
+  const request = store.getAll();
+
+  request.onsuccess = () => {
+    const entries = request.result;
+
+    if (entries.length === 0) {
+      alert("📭 No data to save! Add some entries first.");
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(entries, null, 2)], {
+      type: "application/json",
+    });
+
+    // Auto-generate filename with timestamp
+    const now = new Date();
+    const timestamp = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    const fileName = `letterVotes_${timestamp}`;
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${fileName}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    // Visual feedback
+    const saveBtn = document.getElementById("saveBtn");
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = "✅ Saved!";
+    saveBtn.style.background = "linear-gradient(45deg, #00c9ff, #92fe9d)";
+
+    setTimeout(() => {
+      saveBtn.textContent = originalText;
+      saveBtn.style.background = "linear-gradient(45deg, #4facfe, #00f2fe)";
+    }, 2000);
+  };
+});
+
+// CUSTOM EXPORT DATA
 document.getElementById("exportBtn").addEventListener("click", () => {
   const tx = db.transaction(storeName, "readonly");
   const store = tx.objectStore(storeName);
@@ -194,6 +236,12 @@ document.getElementById("exportBtn").addEventListener("click", () => {
 
   request.onsuccess = () => {
     const entries = request.result;
+
+    if (entries.length === 0) {
+      alert("📭 No data to export! Add some entries first.");
+      return;
+    }
+
     const blob = new Blob([JSON.stringify(entries, null, 2)], {
       type: "application/json",
     });
@@ -209,6 +257,17 @@ document.getElementById("exportBtn").addEventListener("click", () => {
     a.download = `${fileName}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+
+    // Visual feedback
+    const exportBtn = document.getElementById("exportBtn");
+    const originalText = exportBtn.textContent;
+    exportBtn.textContent = "✅ Exported!";
+    exportBtn.style.background = "linear-gradient(45deg, #00c9ff, #92fe9d)";
+
+    setTimeout(() => {
+      exportBtn.textContent = originalText;
+      exportBtn.style.background = "linear-gradient(45deg, #667eea, #764ba2)";
+    }, 2000);
   };
 });
 
@@ -320,6 +379,23 @@ function populateSearchSelects() {
   }
 }
 
+// Toggle form visibility
+let formVisible = false;
+document.getElementById("toggleFormBtn").addEventListener("click", () => {
+  const container = document.getElementById("formContainer");
+  const btn = document.getElementById("toggleFormBtn");
+
+  formVisible = !formVisible;
+
+  if (formVisible) {
+    container.classList.remove("hidden");
+    btn.textContent = "➕ Hide Form";
+  } else {
+    container.classList.add("hidden");
+    btn.textContent = "➕ Show Form";
+  }
+});
+
 // Toggle entries visibility
 let entriesVisible = false;
 document.getElementById("toggleEntriesBtn").addEventListener("click", () => {
@@ -337,6 +413,59 @@ document.getElementById("toggleEntriesBtn").addEventListener("click", () => {
   } else {
     container.classList.add("hidden");
     btn.textContent = "👁️ Show Entries";
+  }
+});
+
+// Toggle data management visibility
+let dataMgmtVisible = false;
+document.getElementById("toggleDataMgmtBtn").addEventListener("click", () => {
+  const container = document.getElementById("dataMgmtContainer");
+  const btn = document.getElementById("toggleDataMgmtBtn");
+
+  dataMgmtVisible = !dataMgmtVisible;
+
+  if (dataMgmtVisible) {
+    container.classList.remove("hidden");
+    btn.textContent = "⚙️ Hide Data Management";
+  } else {
+    container.classList.add("hidden");
+    btn.textContent = "⚙️ Show Data Management";
+  }
+});
+
+// Toggle favorite stats visibility
+let favoriteStatsVisible = false;
+document
+  .getElementById("toggleFavoriteStatsBtn")
+  .addEventListener("click", () => {
+    const container = document.getElementById("favoriteStatsContainer");
+    const btn = document.getElementById("toggleFavoriteStatsBtn");
+
+    favoriteStatsVisible = !favoriteStatsVisible;
+
+    if (favoriteStatsVisible) {
+      container.classList.remove("hidden");
+      btn.textContent = "📊 Hide Stats";
+    } else {
+      container.classList.add("hidden");
+      btn.textContent = "📊 Show Stats";
+    }
+  });
+
+// Toggle least stats visibility
+let leastStatsVisible = false;
+document.getElementById("toggleLeastStatsBtn").addEventListener("click", () => {
+  const container = document.getElementById("leastStatsContainer");
+  const btn = document.getElementById("toggleLeastStatsBtn");
+
+  leastStatsVisible = !leastStatsVisible;
+
+  if (leastStatsVisible) {
+    container.classList.remove("hidden");
+    btn.textContent = "📊 Hide Stats";
+  } else {
+    container.classList.add("hidden");
+    btn.textContent = "📊 Show Stats";
   }
 });
 
@@ -666,5 +795,73 @@ document.getElementById("editForm").addEventListener("submit", (e) => {
 
   request.onerror = () => {
     alert("Error updating entry. Please try again.");
+  };
+});
+
+// DELETE ALL DATA
+document.getElementById("deleteAllBtn").addEventListener("click", () => {
+  const tx = db.transaction(storeName, "readonly");
+  const store = tx.objectStore(storeName);
+  const countRequest = store.count();
+
+  countRequest.onsuccess = () => {
+    const count = countRequest.result;
+
+    if (count === 0) {
+      alert("📭 No data to delete! The database is already empty.");
+      return;
+    }
+
+    // First confirmation with save option
+    const firstConfirm = confirm(
+      `⚠️ DELETE ALL DATA\n\n` +
+        `You have ${count} entries that will be PERMANENTLY DELETED!\n\n` +
+        "💡 TIP: Consider using 'Quick Save' first to backup your data.\n\n" +
+        "This action CANNOT be undone!\n\n" +
+        "Do you want to proceed with deleting all data?"
+    );
+
+    if (firstConfirm) {
+      // Second confirmation for safety
+      const finalConfirm = confirm(
+        "🚨 FINAL CONFIRMATION\n\n" +
+          `This will permanently delete all ${count} entries.\n\n` +
+          "Are you absolutely sure?\n\n" +
+          "Click OK to DELETE ALL DATA\n" +
+          "Click Cancel to go back"
+      );
+
+      if (finalConfirm) {
+        const deleteTx = db.transaction(storeName, "readwrite");
+        const deleteStore = deleteTx.objectStore(storeName);
+        const deleteRequest = deleteStore.clear();
+
+        deleteRequest.onsuccess = () => {
+          // Visual feedback
+          const deleteBtn = document.getElementById("deleteAllBtn");
+          const originalText = deleteBtn.textContent;
+          deleteBtn.textContent = "✅ All Deleted!";
+          deleteBtn.style.background =
+            "linear-gradient(45deg, #ff6b6b, #ffa500)";
+
+          // Refresh all displays
+          loadStats();
+          if (entriesVisible) {
+            loadEntries();
+          }
+
+          setTimeout(() => {
+            deleteBtn.textContent = originalText;
+            deleteBtn.style.background =
+              "linear-gradient(45deg, #f5576c, #f093fb)";
+            alert("🗑️ All data has been permanently deleted!");
+          }, 2000);
+        };
+
+        deleteRequest.onerror = () => {
+          alert("❌ Error deleting data. Please try again.");
+        };
+      }
+    }
   };
 });
