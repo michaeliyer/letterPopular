@@ -552,6 +552,100 @@ li::after {
   opacity: 1;
 }
 
+/* Search filters */
+.search-filters {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: slideInUp 0.5s ease-out;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-field label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.search-input {
+  padding: 0.8rem;
+  font-size: 0.9rem;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.search-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.clear-filters-btn {
+  background: linear-gradient(45deg, #f093fb, #f5576c);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.clear-filters-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(240, 147, 251, 0.3);
+}
+
+.clear-filters-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.results-count {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
 .entries-list {
   max-height: 400px;
   overflow-y: auto;
@@ -881,5 +975,16 @@ li::after {
 
   .toggle-btn {
     align-self: center;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .search-actions {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
   }
 }

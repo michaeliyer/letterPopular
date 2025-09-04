@@ -43,6 +43,45 @@
           </button>
         </div>
         <div id="entriesContainer" class="entries-container hidden">
+          <div class="search-filters">
+            <div class="search-row">
+              <div class="search-field">
+                <label for="searchName">🔍 Search by Name:</label>
+                <input
+                  type="text"
+                  id="searchName"
+                  placeholder="Type name to filter..."
+                  class="search-input"
+                />
+              </div>
+              <div class="search-field">
+                <label for="searchDate">📅 Search by Date:</label>
+                <input type="date" id="searchDate" class="search-input" />
+              </div>
+            </div>
+            <div class="search-row">
+              <div class="search-field">
+                <label for="searchFavorite">💖 Filter by Favorite:</label>
+                <select id="searchFavorite" class="search-input">
+                  <option value="">All letters</option>
+                </select>
+              </div>
+              <div class="search-field">
+                <label for="searchLeast">💔 Filter by Least:</label>
+                <select id="searchLeast" class="search-input">
+                  <option value="">All letters</option>
+                </select>
+              </div>
+            </div>
+            <div class="search-actions">
+              <button id="clearFilters" class="clear-filters-btn">
+                🧹 Clear All Filters
+              </button>
+              <div class="results-count">
+                <span id="resultsCount">0 entries found</span>
+              </div>
+            </div>
+          </div>
           <div id="entriesList" class="entries-list"></div>
         </div>
       </div>

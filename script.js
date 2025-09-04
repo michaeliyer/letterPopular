@@ -278,7 +278,7 @@ document.getElementById("importInput").addEventListener("change", (event) => {
 
 // Entries Management Functionality
 
-// Populate edit form selects
+// Populate edit form selects and search selects
 function populateEditSelects() {
   const editFavoriteSelect = document.getElementById("editFavorite");
   const editLeastSelect = document.getElementById("editLeast");
@@ -302,6 +302,24 @@ function populateEditSelects() {
   }
 }
 
+// Populate search filter selects
+function populateSearchSelects() {
+  const searchFavoriteSelect = document.getElementById("searchFavorite");
+  const searchLeastSelect = document.getElementById("searchLeast");
+
+  // Clear existing options (keep the "All letters" option)
+  searchFavoriteSelect.innerHTML = '<option value="">All letters</option>';
+  searchLeastSelect.innerHTML = '<option value="">All letters</option>';
+
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const optionFav = new Option(letter, letter);
+    const optionLeast = new Option(letter, letter);
+    searchFavoriteSelect.add(optionFav);
+    searchLeastSelect.add(optionLeast);
+  }
+}
+
 // Toggle entries visibility
 let entriesVisible = false;
 document.getElementById("toggleEntriesBtn").addEventListener("click", () => {
@@ -313,12 +331,17 @@ document.getElementById("toggleEntriesBtn").addEventListener("click", () => {
   if (entriesVisible) {
     container.classList.remove("hidden");
     btn.textContent = "👁️ Hide Entries";
+    populateSearchSelects();
+    setupSearchListeners();
     loadEntries();
   } else {
     container.classList.add("hidden");
     btn.textContent = "👁️ Show Entries";
   }
 });
+
+// Global variable to store all entries for filtering
+let allEntries = [];
 
 // Load and display all entries
 function loadEntries() {
@@ -327,9 +350,41 @@ function loadEntries() {
   const request = store.getAll();
 
   request.onsuccess = () => {
-    const entries = request.result;
-    displayEntries(entries);
+    allEntries = request.result;
+    applyFilters();
   };
+}
+
+// Apply current filter criteria
+function applyFilters() {
+  const nameFilter = document
+    .getElementById("searchName")
+    .value.toLowerCase()
+    .trim();
+  const dateFilter = document.getElementById("searchDate").value;
+  const favoriteFilter = document.getElementById("searchFavorite").value;
+  const leastFilter = document.getElementById("searchLeast").value;
+
+  let filteredEntries = allEntries.filter((entry) => {
+    // Name filter (partial match, case insensitive)
+    const nameMatch =
+      !nameFilter || entry.name.toLowerCase().includes(nameFilter);
+
+    // Date filter (exact match)
+    const dateMatch = !dateFilter || entry.date === dateFilter;
+
+    // Favorite letter filter (exact match)
+    const favoriteMatch = !favoriteFilter || entry.favorite === favoriteFilter;
+
+    // Least favorite letter filter (exact match)
+    const leastMatch = !leastFilter || entry.least === leastFilter;
+
+    return nameMatch && dateMatch && favoriteMatch && leastMatch;
+  });
+
+  displayEntries(filteredEntries);
+  updateResultsCount(filteredEntries.length, allEntries.length);
+  updateClearButtonState();
 }
 
 // Display entries in cards
@@ -337,11 +392,22 @@ function displayEntries(entries) {
   const entriesList = document.getElementById("entriesList");
   entriesList.innerHTML = "";
 
-  if (entries.length === 0) {
+  if (allEntries.length === 0) {
     entriesList.innerHTML = `
       <div class="no-entries">
         <p style="text-align: center; color: #666; font-style: italic;">
           📭 No entries yet. Add some data to see it here!
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  if (entries.length === 0) {
+    entriesList.innerHTML = `
+      <div class="no-entries">
+        <p style="text-align: center; color: #666; font-style: italic;">
+          🔍 No entries match your search criteria. Try adjusting your filters.
         </p>
       </div>
     `;
@@ -356,7 +422,13 @@ function displayEntries(entries) {
     entryCard.className = "entry-card";
     entryCard.style.animationDelay = `${index * 0.1}s`;
 
-    const date = new Date(entry.date);
+    // Parse date safely to avoid timezone issues
+    const dateParts = entry.date.split("-"); // "2024-09-06" -> ["2024", "09", "06"]
+    const date = new Date(
+      parseInt(dateParts[0]),
+      parseInt(dateParts[1]) - 1,
+      parseInt(dateParts[2])
+    );
     const formattedDate = date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -394,6 +466,70 @@ function displayEntries(entries) {
 
     entriesList.appendChild(entryCard);
   });
+}
+
+// Update results count display
+function updateResultsCount(filtered, total) {
+  const resultsCount = document.getElementById("resultsCount");
+  if (filtered === total) {
+    resultsCount.textContent = `${total} entries found`;
+  } else {
+    resultsCount.textContent = `${filtered} of ${total} entries found`;
+  }
+}
+
+// Update clear button state
+function updateClearButtonState() {
+  const clearBtn = document.getElementById("clearFilters");
+  const hasFilters =
+    document.getElementById("searchName").value ||
+    document.getElementById("searchDate").value ||
+    document.getElementById("searchFavorite").value ||
+    document.getElementById("searchLeast").value;
+
+  clearBtn.disabled = !hasFilters;
+}
+
+// Setup search event listeners
+function setupSearchListeners() {
+  // Real-time search as you type
+  document.getElementById("searchName").addEventListener("input", applyFilters);
+  document
+    .getElementById("searchDate")
+    .addEventListener("change", applyFilters);
+  document
+    .getElementById("searchFavorite")
+    .addEventListener("change", applyFilters);
+  document
+    .getElementById("searchLeast")
+    .addEventListener("change", applyFilters);
+
+  // Clear filters button
+  document
+    .getElementById("clearFilters")
+    .addEventListener("click", clearAllFilters);
+}
+
+// Clear all filters
+function clearAllFilters() {
+  document.getElementById("searchName").value = "";
+  document.getElementById("searchDate").value = "";
+  document.getElementById("searchFavorite").value = "";
+  document.getElementById("searchLeast").value = "";
+
+  // Apply filters to refresh the display
+  applyFilters();
+
+  // Add visual feedback
+  const clearBtn = document.getElementById("clearFilters");
+  const originalText = clearBtn.textContent;
+  clearBtn.textContent = "✨ Cleared!";
+  clearBtn.style.background = "linear-gradient(45deg, #4facfe, #00f2fe)";
+
+  setTimeout(() => {
+    clearBtn.textContent = originalText;
+    clearBtn.style.background = "linear-gradient(45deg, #f093fb, #f5576c)";
+  }, 1500);
 }
 
 // Edit entry function
@@ -437,7 +573,7 @@ function deleteEntry(entryId) {
       btn.disabled = true;
 
       setTimeout(() => {
-        loadEntries();
+        loadEntries(); // This will now maintain current filters
         loadStats();
 
         // Show success message briefly
@@ -512,7 +648,7 @@ document.getElementById("editForm").addEventListener("submit", (e) => {
     // Close modal
     document.getElementById("editModal").classList.add("hidden");
 
-    // Refresh data
+    // Refresh data (maintains current filters)
     loadEntries();
     loadStats();
 
