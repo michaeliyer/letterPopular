@@ -586,7 +586,7 @@ li::after {
 }
 
 .entries-container:not(.hidden) {
-  max-height: 500px;
+  max-height: 800px;
   opacity: 1;
 }
 
@@ -685,7 +685,7 @@ li::after {
 }
 
 .entries-list {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(102, 126, 234, 0.3) transparent;

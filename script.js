@@ -19,11 +19,11 @@ leastSelect.add(defaultLeast);
 for (let i = 65; i <= 90; i++) {
   const letter = String.fromCharCode(i);
   const optionFav = new Option(
-    `${letter} - ${getLetterPersonality(letter)}`,
+    `${letter} - ${getLetterPersonality(letter, false)}`,
     letter
   );
   const optionLeast = new Option(
-    `${letter} - ${getLetterPersonality(letter)}`,
+    `${letter} - ${getLetterPersonality(letter, true)}`,
     letter
   );
   favoriteSelect.add(optionFav);
@@ -31,36 +31,68 @@ for (let i = 65; i <= 90; i++) {
 }
 
 // Fun letter personalities
-function getLetterPersonality(letter) {
-  const personalities = {
-    A: "The Achiever ⭐",
-    B: "The Bold 💪",
-    C: "The Creative 🎨",
-    D: "The Determined 🎯",
-    E: "The Energetic ⚡",
-    F: "The Friendly 🤝",
-    G: "The Gentle 🌸",
-    H: "The Happy 😊",
-    I: "The Intelligent 🧠",
-    J: "The Joyful 🎉",
-    K: "The Kind 💕",
-    L: "The Lovely 💖",
-    M: "The Magical ✨",
-    N: "The Noble 👑",
-    O: "The Optimistic 🌞",
-    P: "The Passionate 🔥",
-    Q: "The Quirky 🤪",
-    R: "The Radiant 🌟",
-    S: "The Strong 💎",
-    T: "The Thoughtful 💭",
-    U: "The Unique 🦄",
-    V: "The Vibrant 🌈",
-    W: "The Wise 🦉",
-    X: "The Mysterious 🔮",
-    Y: "The Youthful 🌱",
-    Z: "The Zealous 🚀",
-  };
-  return personalities[letter] || "The Awesome";
+function getLetterPersonality(letter, isLeastFavorite = false) {
+  if (isLeastFavorite) {
+    const negativePersonalities = {
+      A: "The Annoying 😤",
+      B: "The Boring 😴",
+      C: "The Cheater 🤥",
+      D: "The Dull 🥱",
+      E: "The Egotistical 🙄",
+      F: "The Fake 🎭",
+      G: "The Grumpy 😠",
+      H: "The Harsh 😡",
+      I: "The Irritating 😬",
+      J: "The Jealous 😒",
+      K: "The Killjoy 💀",
+      L: "The Lazy 🛌",
+      M: "The Mean 👿",
+      N: "The Nasty 🤢",
+      O: "The Obnoxious 🙃",
+      P: "The Petty 😤",
+      Q: "The Quarrelsome ⚔️",
+      R: "The Rude 🤨",
+      S: "The Selfish 💸",
+      T: "The Toxic ☠️",
+      U: "The Ugly 🤮",
+      V: "The Vain 🪞",
+      W: "The Wicked 👹",
+      X: "The Xenophobic 🚫",
+      Y: "The Yucky 🤧",
+      Z: "The Zany 🤡",
+    };
+    return negativePersonalities[letter] || "The Awful";
+  } else {
+    const positivePersonalities = {
+      A: "The Achiever ⭐",
+      B: "The Bold 💪",
+      C: "The Creative 🎨",
+      D: "The Determined 🎯",
+      E: "The Energetic ⚡",
+      F: "The Friendly 🤝",
+      G: "The Gentle 🌸",
+      H: "The Happy 😊",
+      I: "The Intelligent 🧠",
+      J: "The Joyful 🎉",
+      K: "The Kind 💕",
+      L: "The Lovely 💖",
+      M: "The Magical ✨",
+      N: "The Noble 👑",
+      O: "The Optimistic 🌞",
+      P: "The Passionate 🔥",
+      Q: "The Quirky 🤪",
+      R: "The Radiant 🌟",
+      S: "The Strong 💎",
+      T: "The Thoughtful 💭",
+      U: "The Unique 🦄",
+      V: "The Vibrant 🌈",
+      W: "The Wise 🦉",
+      X: "The Mysterious 🔮",
+      Y: "The Youthful 🌱",
+      Z: "The Zealous 🚀",
+    };
+    return positivePersonalities[letter] || "The Awesome";
+  }
 }
 
 // Open IndexedDB
@@ -349,11 +381,11 @@ function populateEditSelects() {
   for (let i = 65; i <= 90; i++) {
     const letter = String.fromCharCode(i);
     const optionFav = new Option(
-      `${letter} - ${getLetterPersonality(letter)}`,
+      `${letter} - ${getLetterPersonality(letter, false)}`,
       letter
     );
     const optionLeast = new Option(
-      `${letter} - ${getLetterPersonality(letter)}`,
+      `${letter} - ${getLetterPersonality(letter, true)}`,
       letter
     );
     editFavoriteSelect.add(optionFav);
@@ -372,6 +404,7 @@ function populateSearchSelects() {
 
   for (let i = 65; i <= 90; i++) {
     const letter = String.fromCharCode(i);
+    // For search filters, just show the letter without personality descriptions for cleaner UI
     const optionFav = new Option(letter, letter);
     const optionLeast = new Option(letter, letter);
     searchFavoriteSelect.add(optionFav);
@@ -510,7 +543,6 @@ function applyFilters() {
 
     return nameMatch && dateMatch && favoriteMatch && leastMatch;
   });
-
   displayEntries(filteredEntries);
   updateResultsCount(filteredEntries.length, allEntries.length);
   updateClearButtonState();
