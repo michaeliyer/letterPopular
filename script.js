@@ -965,10 +965,15 @@ function createChart(counts, total, containerId, chartType) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
 
-  // Sort by count (highest to lowest)
-  const sortedData = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10); // Show top 10
+  // Create data for all letters A-Z
+  const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const allLetterData = allLetters.map((letter) => [
+    letter,
+    counts[letter] || 0,
+  ]);
+
+  // Sort by count (highest to lowest), but keep all letters
+  const sortedData = allLetterData.sort((a, b) => b[1] - a[1]);
 
   if (sortedData.length === 0) {
     container.innerHTML = `
@@ -982,15 +987,25 @@ function createChart(counts, total, containerId, chartType) {
   const maxCount = sortedData[0][1];
 
   sortedData.forEach(([letter, count], index) => {
-    const percentage = ((count / total) * 100).toFixed(1);
-    const barWidth = (count / maxCount) * 100;
+    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+    const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0;
 
     const barElement = document.createElement("div");
     barElement.className = `chart-bar ${chartType}-bar`;
 
+    // Create gradient based on count value (all letters with same count get same color)
+    const gradientVariation = getVerticalGradient(chartType, count, maxCount);
+
+    // Get personality descriptor
+    const isLeastFavorite = chartType === "least";
+    const personality = getLetterPersonality(letter, isLeastFavorite);
+
     barElement.innerHTML = `
-      <div class="chart-letter">${letter}</div>
-      <div class="chart-bar-fill" style="width: 0%"></div>
+      <div class="chart-letter">
+        ${letter}
+        <div class="letter-personality">${personality}</div>
+      </div>
+      <div class="chart-bar-fill" style="width: 0%; background: ${gradientVariation};"></div>
       <div class="chart-value">
         ${count}/${total}
         <span class="chart-percentage">(${percentage}%)</span>
@@ -1005,6 +1020,49 @@ function createChart(counts, total, containerId, chartType) {
       fillElement.style.width = `${barWidth}%`;
     }, 100 + index * 100);
   });
+}
+
+// Generate vertical gradient based on count value (letters with same count get same color)
+function getVerticalGradient(chartType, count, maxCount) {
+  // Calculate position percentage based on count (0 = least popular, 1 = most popular)
+  const position = maxCount > 0 ? 1 - count / maxCount : 0;
+
+  if (chartType === "favorite") {
+    // Blue theme: very bright blue at top, very dark blue at bottom (high contrast)
+    const startColor = interpolateColor("#00d4ff", "#1a237e", position); // Bright cyan to very dark blue
+    const endColor = interpolateColor("#40e0d0", "#0d47a1", position); // Turquoise to deep blue
+    return `linear-gradient(90deg, ${startColor}, ${endColor})`;
+  } else {
+    // Red theme: very bright pink at top, very dark red at bottom (high contrast)
+    const startColor = interpolateColor("#ff1744", "#4a0e0e", position); // Bright red to very dark red
+    const endColor = interpolateColor("#ff4081", "#8e0000", position); // Bright pink to dark crimson
+    return `linear-gradient(90deg, ${startColor}, ${endColor})`;
+  }
+}
+
+// Helper function to interpolate between two hex colors
+function interpolateColor(color1, color2, factor) {
+  // Convert hex to RGB
+  const hex1 = color1.replace("#", "");
+  const hex2 = color2.replace("#", "");
+
+  const r1 = parseInt(hex1.substr(0, 2), 16);
+  const g1 = parseInt(hex1.substr(2, 2), 16);
+  const b1 = parseInt(hex1.substr(4, 2), 16);
+
+  const r2 = parseInt(hex2.substr(0, 2), 16);
+  const g2 = parseInt(hex2.substr(2, 2), 16);
+  const b2 = parseInt(hex2.substr(4, 2), 16);
+
+  // Interpolate
+  const r = Math.round(r1 + (r2 - r1) * factor);
+  const g = Math.round(g1 + (g2 - g1) * factor);
+  const b = Math.round(b1 + (b2 - b1) * factor);
+
+  // Convert back to hex
+  return `#${r.toString(16).padStart(2, "0")}${g
+    .toString(16)
+    .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
 // Update charts when stats are updated

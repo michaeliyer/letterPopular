@@ -630,6 +630,20 @@ li::after {
   color: #333;
   min-width: 20px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.letter-personality {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: #666;
+  font-style: italic;
+  line-height: 1.1;
+  text-align: center;
+  opacity: 0.8;
 }
 
 .chart-bar-fill {
@@ -644,12 +658,10 @@ li::after {
 }
 
 .favorite-bar .chart-bar-fill {
-  background: linear-gradient(90deg, #667eea, #764ba2);
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .least-bar .chart-bar-fill {
-  background: linear-gradient(90deg, #f5576c, #f093fb);
   box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
 }
 
