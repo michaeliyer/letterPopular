@@ -502,6 +502,24 @@ document.getElementById("toggleLeastStatsBtn").addEventListener("click", () => {
   }
 });
 
+// Toggle charts visibility
+let chartsVisible = false;
+document.getElementById("toggleChartsBtn").addEventListener("click", () => {
+  const container = document.getElementById("chartsContainer");
+  const btn = document.getElementById("toggleChartsBtn");
+
+  chartsVisible = !chartsVisible;
+
+  if (chartsVisible) {
+    container.classList.remove("hidden");
+    btn.textContent = "📊 Hide Charts";
+    loadCharts();
+  } else {
+    container.classList.add("hidden");
+    btn.textContent = "📊 Show Charts";
+  }
+});
+
 // Global variable to store all entries for filtering
 let allEntries = [];
 
@@ -599,7 +617,7 @@ function displayEntries(entries) {
     entryCard.innerHTML = `
       <div class="entry-header">
         <div class="entry-name">👤 ${entry.name}</div>
-        <div class="entry-date">📅 ${formattedDate}</div>
+        <div class="entry-date">🗓️${formattedDate}</div>
       </div>
       <div class="entry-details">
         <div class="entry-letter favorite-letter">
@@ -897,3 +915,103 @@ document.getElementById("deleteAllBtn").addEventListener("click", () => {
     }
   };
 });
+
+// Charts functionality
+function loadCharts() {
+  const tx = db.transaction(storeName, "readonly");
+  const store = tx.objectStore(storeName);
+  const request = store.getAll();
+
+  request.onsuccess = () => {
+    const entries = request.result;
+    generateCharts(entries);
+  };
+}
+
+function generateCharts(entries) {
+  if (entries.length === 0) {
+    document.getElementById("favoriteBars").innerHTML = `
+      <div style="text-align: center; color: #666; font-style: italic; padding: 2rem;">
+        📭 No data available for charts yet!<br>Add some entries to see beautiful visualizations.
+      </div>
+    `;
+    document.getElementById("leastBars").innerHTML = `
+      <div style="text-align: center; color: #666; font-style: italic; padding: 2rem;">
+        📭 No data available for charts yet!<br>Add some entries to see beautiful visualizations.
+      </div>
+    `;
+    return;
+  }
+
+  const total = entries.length;
+
+  // Count letters
+  const favoriteCounts = entries.reduce((acc, entry) => {
+    acc[entry.favorite] = (acc[entry.favorite] || 0) + 1;
+    return acc;
+  }, {});
+
+  const leastCounts = entries.reduce((acc, entry) => {
+    acc[entry.least] = (acc[entry.least] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Generate charts
+  createChart(favoriteCounts, total, "favoriteBars", "favorite");
+  createChart(leastCounts, total, "leastBars", "least");
+}
+
+function createChart(counts, total, containerId, chartType) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+
+  // Sort by count (highest to lowest)
+  const sortedData = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10); // Show top 10
+
+  if (sortedData.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #666; font-style: italic; padding: 2rem;">
+        📊 No data for this chart yet!
+      </div>
+    `;
+    return;
+  }
+
+  const maxCount = sortedData[0][1];
+
+  sortedData.forEach(([letter, count], index) => {
+    const percentage = ((count / total) * 100).toFixed(1);
+    const barWidth = (count / maxCount) * 100;
+
+    const barElement = document.createElement("div");
+    barElement.className = `chart-bar ${chartType}-bar`;
+
+    barElement.innerHTML = `
+      <div class="chart-letter">${letter}</div>
+      <div class="chart-bar-fill" style="width: 0%"></div>
+      <div class="chart-value">
+        ${count}/${total}
+        <span class="chart-percentage">(${percentage}%)</span>
+      </div>
+    `;
+
+    container.appendChild(barElement);
+
+    // Animate bar width after a delay
+    setTimeout(() => {
+      const fillElement = barElement.querySelector(".chart-bar-fill");
+      fillElement.style.width = `${barWidth}%`;
+    }, 100 + index * 100);
+  });
+}
+
+// Update charts when stats are updated
+const originalLoadStats = loadStats;
+loadStats = function () {
+  originalLoadStats.call(this);
+  if (chartsVisible) {
+    loadCharts();
+  }
+};

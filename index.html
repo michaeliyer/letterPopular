@@ -62,6 +62,31 @@
         </div>
       </div>
 
+      <div class="charts-section">
+        <div class="section-header">
+          <h2>📈 Display Data</h2>
+          <button id="toggleChartsBtn" class="toggle-btn">
+            📊 Show Charts
+          </button>
+        </div>
+        <div id="chartsContainer" class="charts-container hidden">
+          <div class="charts-grid">
+            <div class="chart-panel">
+              <h3>🏆 Most Popular Letters</h3>
+              <div id="favoriteChart" class="chart-container">
+                <div class="chart-bars" id="favoriteBars"></div>
+              </div>
+            </div>
+            <div class="chart-panel">
+              <h3>💔 Least Popular Letters</h3>
+              <div id="leastChart" class="chart-container">
+                <div class="chart-bars" id="leastBars"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="entries-section">
         <div class="section-header">
           <h2>👥 Manage Entries</h2>
@@ -73,7 +98,7 @@
           <div class="search-filters">
             <div class="search-row">
               <div class="search-field">
-                <label for="searchName">🔍 Searc h by Name:</label>
+                <label for="searchName">🔍 Search by Name:</label>
                 <input
                   type="text"
                   id="searchName"
