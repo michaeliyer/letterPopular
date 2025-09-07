@@ -646,6 +646,39 @@ li::after {
   opacity: 0.8;
 }
 
+/* Count chart styling */
+.count-bar .chart-letter {
+  min-width: 80px;
+  gap: 0.15rem;
+}
+
+.count-value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #2c3e50;
+}
+
+.count-descriptor {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #e74c3c;
+  font-style: italic;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.count-bar.favorite-bar .count-descriptor {
+  color: #3498db;
+}
+
+.letters-list {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #34495e;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+}
+
 .chart-bar-fill {
   height: 20px;
   border-radius: 10px;

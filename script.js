@@ -740,6 +740,18 @@ function deleteEntry(entryId) {
   );
 
   if (confirmDelete) {
+    // Second confirmation - more emphatic
+    const finalConfirm = confirm(
+      "🚨 REALLY? FINE. YOUR DATA WILL BE AFFECTED!\n\n" +
+        "This entry will be permanently deleted.\n\n" +
+        "Are you absolutely sure?\n\n" +
+        "Click OK to DELETE THIS ENTRY\n" +
+        "Click Cancel to go back"
+    );
+
+    if (!finalConfirm) {
+      return; // User changed their mind
+    }
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
     const request = store.delete(entryId);
@@ -872,12 +884,12 @@ document.getElementById("deleteAllBtn").addEventListener("click", () => {
     );
 
     if (firstConfirm) {
-      // Second confirmation for safety
+      // Second confirmation - more emphatic
       const finalConfirm = confirm(
-        "🚨 FINAL CONFIRMATION\n\n" +
+        "Good. Screw your data. Hopefully it's backed up!\n\n" +
           `This will permanently delete all ${count} entries.\n\n` +
-          "Are you absolutely sure?\n\n" +
-          "Click OK to DELETE ALL DATA\n" +
+          "You really wanna do this?\n\n" +
+          "Do it then. Click OK to DELETE ALL DATA.\n" +
           "Click Cancel to go back"
       );
 
@@ -959,6 +971,10 @@ function generateCharts(entries) {
   // Generate charts
   createChart(favoriteCounts, total, "favoriteBars", "favorite");
   createChart(leastCounts, total, "leastBars", "least");
+
+  // Generate count-based charts
+  createCountChart(favoriteCounts, total, "favoriteCountBars", "favorite");
+  createCountChart(leastCounts, total, "leastCountBars", "least");
 }
 
 function createChart(counts, total, containerId, chartType) {
@@ -1020,6 +1036,114 @@ function createChart(counts, total, containerId, chartType) {
       fillElement.style.width = `${barWidth}%`;
     }, 100 + index * 100);
   });
+}
+
+// Create count-based charts showing vote progression
+function createCountChart(counts, total, containerId, chartType) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+
+  // Get unique count values and sort them
+  const uniqueCounts = [...new Set(Object.values(counts))].sort(
+    (a, b) => b - a
+  );
+
+  if (
+    uniqueCounts.length === 0 ||
+    (uniqueCounts.length === 1 && uniqueCounts[0] === 0)
+  ) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #666; font-style: italic; padding: 2rem;">
+        📊 No vote data available yet!
+      </div>
+    `;
+    return;
+  }
+
+  const maxCount = Math.max(...uniqueCounts);
+
+  uniqueCounts.forEach((count, index) => {
+    // Get all letters with this count
+    const lettersWithCount = Object.entries(counts)
+      .filter(([letter, letterCount]) => letterCount === count)
+      .map(([letter]) => letter)
+      .sort();
+
+    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+    const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0;
+
+    const barElement = document.createElement("div");
+    barElement.className = `chart-bar count-bar ${chartType}-bar`;
+
+    // Create gradient based on count value
+    const gradientVariation = getVerticalGradient(chartType, count, maxCount);
+
+    // Get count descriptor
+    const countDescriptor = getCountDescriptor(count, chartType);
+
+    barElement.innerHTML = `
+      <div class="chart-letter">
+        <div class="count-value">${count}</div>
+        <div class="count-descriptor">${countDescriptor}</div>
+        <div class="letters-list">${lettersWithCount.join(", ")}</div>
+      </div>
+      <div class="chart-bar-fill" style="width: 0%; background: ${gradientVariation};"></div>
+      <div class="chart-value">
+        ${lettersWithCount.length} letter${
+      lettersWithCount.length !== 1 ? "s" : ""
+    }
+        <span class="chart-percentage">(${percentage}% each)</span>
+      </div>
+    `;
+
+    container.appendChild(barElement);
+
+    // Animate bar width after a delay
+    setTimeout(() => {
+      const fillElement = barElement.querySelector(".chart-bar-fill");
+      fillElement.style.width = `${barWidth}%`;
+    }, 100 + index * 100);
+  });
+}
+
+// Get descriptive text for count values
+function getCountDescriptor(count, chartType) {
+  const favoriteDescriptors = {
+    0: "The Overlooked",
+    1: "The Singleton",
+    2: "The Paired",
+    3: "The Trilogy",
+    4: "The Quartet",
+    5: "The Celebrated",
+    6: "The Popular",
+    7: "The Beloved",
+    8: "The Adored",
+    9: "The Treasured",
+    10: "The Perfect Ten",
+  };
+
+  const leastDescriptors = {
+    0: "The Spared",
+    1: "The Disliked",
+    2: "The Twice Shunned",
+    3: "The Thrice Rejected",
+    4: "The Quadruple Trouble",
+    5: "The Unwanted",
+    6: "The Despised",
+    7: "The Reviled",
+    8: "The Detested",
+    9: "The Abhorred",
+    10: "The Most Hated",
+  };
+
+  const descriptors =
+    chartType === "favorite" ? favoriteDescriptors : leastDescriptors;
+  return (
+    descriptors[count] ||
+    (chartType === "favorite"
+      ? `The ${count}-Time Favorite`
+      : `The ${count}-Time Reject`)
+  );
 }
 
 // Generate vertical gradient based on count value (letters with same count get same color)
